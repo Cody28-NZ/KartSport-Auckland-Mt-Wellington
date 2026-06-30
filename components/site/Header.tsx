@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { desktopNavigation } from "@/data/navigation";
 import { cn, focusRing } from "@/lib/cn";
 import { Container } from "@/components/ui/Container";
+import { AccountNavLink } from "@/components/auth/AccountNavLink";
 import { MobileMenu } from "@/components/site/MobileMenu";
 import { TrackAvailabilityIndicator } from "@/components/site/TrackAvailabilityIndicator";
 
@@ -68,6 +69,8 @@ export function Header() {
             <div className="hidden shrink-0 lg:block">
               <TrackAvailabilityIndicator className="shadow-sm ring-1 ring-white/15" />
             </div>
+
+            <AccountNavLink className="hidden xl:inline-flex" />
 
             <button
               type="button"

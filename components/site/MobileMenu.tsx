@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { mobileNavigationGroups } from "@/data/navigation";
+import { AccountNavLink } from "@/components/auth/AccountNavLink";
 import { cn, focusRing } from "@/lib/cn";
 import { TrackAvailabilityIndicator } from "@/components/site/TrackAvailabilityIndicator";
 
@@ -40,6 +41,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-4" aria-label="Main">
+          <div className="mb-4 border-b border-border pb-4 xl:hidden">
+            <AccountNavLink onDark={false} />
+          </div>
           <ul className="space-y-6">
             {mobileNavigationGroups.map((group) => (
               <li key={group.id}>
