@@ -67,7 +67,7 @@ export const faqs: FaqItem[] = [
     id: "what-does-it-cost",
     question: "What does it cost?",
     answer:
-      "Karting costs depend on class, how much you buy new versus second-hand, and how often you practise and race. Expect categories such as kart, safety gear, membership, licence, practice, race entries and running costs. Exact fees are to confirm.",
+      "Karting costs depend on class, how much you buy new versus second-hand, and how often you practice and race. Expect categories such as kart, safety gear, membership, licence, practice, race entries and running costs. Exact fees are to confirm.",
     category: "beginner",
     relatedLinks: [{ label: "Costs", href: "/start-karting/costs" }],
     status: "to-confirm",

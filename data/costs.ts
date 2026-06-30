@@ -82,7 +82,7 @@ export const costItems: CostItem[] = [
     title: "Practice fee",
     category: "practice",
     description:
-      "Per-session or daily fee to practise at Sir Colin Giltrap Raceway. Visitor practice fees may differ.",
+      "Per-session or daily fee to practice at Sir Colin Giltrap Raceway. Visitor practice fees may differ.",
     estimate: "to confirm",
     frequency: "per-event",
     sourceType: "club",

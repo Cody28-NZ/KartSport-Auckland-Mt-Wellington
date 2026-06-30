@@ -45,7 +45,7 @@ export function RegisterForm() {
     }
 
     if (data.session) {
-      router.push("/account");
+      router.push("/account/onboarding");
       router.refresh();
       return;
     }
@@ -96,7 +96,7 @@ export function RegisterForm() {
       <p className="text-sm text-ink-muted">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-brand hover:text-brand-hover">
-          Sign in
+          Member login
         </Link>
       </p>
     </form>

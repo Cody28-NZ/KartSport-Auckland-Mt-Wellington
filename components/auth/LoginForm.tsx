@@ -6,21 +6,27 @@ import { useRouter } from "next/navigation";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { cn, btnPrimary, focusRing, tapTarget } from "@/lib/cn";
 
-export function LoginForm() {
+interface LoginFormProps {
+  nextPath?: string;
+}
+
+export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const destination = nextPath && nextPath.startsWith("/") ? nextPath : "/account";
+
   useEffect(() => {
     const supabase = createClientIfConfigured();
     if (!supabase) return;
 
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.replace("/account");
+      if (data.user) router.replace(destination);
     });
-  }, [router]);
+  }, [router, destination]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +48,7 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/account");
+    router.push(destination);
     router.refresh();
   }
 
@@ -85,9 +91,9 @@ export function LoginForm() {
         {loading ? "Signing in..." : "Sign in"}
       </button>
       <p className="text-sm text-ink-muted">
-        No account?{" "}
-        <Link href="/register" className="font-medium text-brand hover:text-brand-hover">
-          Register
+        New to the club?{" "}
+        <Link href="/become-a-member" className="font-medium text-brand hover:text-brand-hover">
+          Become a member
         </Link>
       </p>
     </form>

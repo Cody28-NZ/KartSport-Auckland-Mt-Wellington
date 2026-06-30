@@ -38,7 +38,7 @@ export default function HomePage() {
         variant="home"
         headline="KartSport Auckland Mt Wellington"
         trustLine="Auckland's home of real kart racing."
-        subheading="Compete, practise, or start karting at Sir Colin Giltrap Raceway, Colin Dale Park."
+        subheading="Compete, practice, or start karting at Sir Colin Giltrap Raceway, Colin Dale Park."
         primaryCta={{ label: "Race Entries", href: "/race-entries", variant: "primary" }}
         secondaryCta={{ label: "Practice", href: "/practice", variant: "secondary" }}
         tertiaryCta={{ label: "Calendar", href: "/calendar", variant: "secondary" }}

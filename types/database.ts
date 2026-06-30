@@ -193,3 +193,57 @@ export interface DriverKart {
   created_at: string;
   updated_at: string;
 }
+
+export interface MembershipProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MembershipApplication {
+  id: string;
+  user_id: string;
+  driver_id: string | null;
+  season_label: string;
+  is_junior: boolean;
+  primary_family_member_first_name: string | null;
+  primary_family_member_last_name: string | null;
+  primary_class_id: string | null;
+  secondary_class_id: string | null;
+  applicant_occupation: string | null;
+  volunteer_interest: string | null;
+  status: RegistrationStatus;
+  payment_status: PaymentStatus;
+  amount_due: number;
+  external_payment_reference: string | null;
+  payment_note: string | null;
+  submitted_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MembershipApplicationItem {
+  id: string;
+  application_id: string;
+  product_id: string | null;
+  product_name_snapshot: string;
+  unit_price_snapshot: number;
+  quantity: number;
+  line_total: number;
+  created_at: string;
+}
+
+export interface TermsVersion {
+  id: string;
+  context: TermsContext;
+  version_label: string;
+  title: string;
+  body: string;
+  active: boolean;
+  created_at: string;
+}

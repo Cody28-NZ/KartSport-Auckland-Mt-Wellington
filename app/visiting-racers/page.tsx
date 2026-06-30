@@ -3,14 +3,14 @@ import { SimplePage } from "@/components/layout/SimplePage";
 
 export const metadata = createPageMetadata({
   title: "Visiting Racers | KartSport Auckland Mt Wellington",
-  description: "Information for visiting racers practising or racing at Sir Colin Giltrap Raceway.",
+  description: "Information for visiting racers practicing or racing at Sir Colin Giltrap Raceway.",
 });
 
 export default function VisitingRacersPage() {
   return (
     <SimplePage
       headline="Visiting Racers"
-      subheading="What visiting racers need to check before practising or racing at KartSport Auckland Mt Wellington."
+      subheading="What visiting racers need to check before practicing or racing at KartSport Auckland Mt Wellington."
       sections={[
         {
           id: "check-first",
@@ -25,7 +25,7 @@ export default function VisitingRacersPage() {
           id: "practice",
           heading: "Visitor practice",
           body: [
-            "Visiting licenced drivers may practise subject to club rules, capacity and fees.",
+            "Visiting licenced drivers may practice subject to club rules, capacity and fees.",
             "Sign-in process and fees are to confirm. See Practice for the current registration link.",
           ],
         },

@@ -1,6 +1,9 @@
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/auth";
+import { isJuniorDriver } from "@/lib/drivers/utils";
 import type { Driver, DriverKart, DriverLicence, Guardian } from "@/types/database";
+
+export { isJuniorDriver };
 
 export async function getDriversForCurrentUser(): Promise<Driver[]> {
   const supabase = await createClientIfConfigured();
@@ -47,13 +50,3 @@ export async function getDriverWithDetails(driverId: string) {
   };
 }
 
-export function isJuniorDriver(dateOfBirth: string): boolean {
-  const dob = new Date(`${dateOfBirth}T12:00:00`);
-  const today = new Date();
-  let age = today.getFullYear() - dob.getFullYear();
-  const monthDiff = today.getMonth() - dob.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-    age -= 1;
-  }
-  return age < 18;
-}

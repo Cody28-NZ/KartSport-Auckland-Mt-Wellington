@@ -45,7 +45,7 @@ export default function StartKartingPage() {
             "1. Understand real karting - read this guide and the FAQ.",
             "2. Try Pathway to Karting if you want guided help before buying.",
             "3. Understand costs and licences before spending money.",
-            "4. Practise, then enter your first club race day.",
+            "4. Practice, then enter your first club race day.",
           ],
         },
         {

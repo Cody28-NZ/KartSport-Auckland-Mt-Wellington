@@ -93,7 +93,7 @@ where os.key = 'volunteer_roles';
 -- ---------------------------------------------------------------------------
 
 insert into public.membership_products (name, price, sort_order) values
-  ('Racing / Practising Member', 110, 1),
+  ('Racing / Practicing Member', 110, 1),
   ('Additional Racing Member for Family, same address', 10, 2),
   ('Social Membership', 30, 3),
   ('Life / Honorary Member', 0, 4),

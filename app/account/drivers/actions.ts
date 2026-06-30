@@ -2,15 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isJuniorDriver } from "@/lib/data/drivers";
+import { isJuniorDriver } from "@/lib/drivers/utils";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/auth";
-
-export async function signOutAction() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
-}
 
 export async function saveDriverAction(formData: FormData) {
   const supabase = await createClient();
@@ -35,7 +29,13 @@ export async function saveDriverAction(formData: FormData) {
     date_of_birth: dateOfBirth,
     email,
     phone,
+    street_address: String(formData.get("street_address") ?? "").trim() || null,
+    suburb: String(formData.get("suburb") ?? "").trim() || null,
+    town_city: String(formData.get("town_city") ?? "").trim() || null,
+    postcode: String(formData.get("postcode") ?? "").trim() || null,
+    default_class_id: String(formData.get("default_class_id") ?? "").trim() || null,
     default_kart_number: String(formData.get("kart_number") ?? "").trim() || null,
+    default_race_number: String(formData.get("race_number") ?? "").trim() || null,
     default_transponder_number: String(formData.get("transponder_number") ?? "").trim() || null,
   };
 
@@ -68,6 +68,8 @@ export async function saveDriverAction(formData: FormData) {
       last_name: guardianLastName,
       email: guardianEmail,
       phone: guardianPhone,
+      street_address: String(formData.get("guardian_street_address") ?? "").trim() || null,
+      occupation: String(formData.get("guardian_occupation") ?? "").trim() || null,
       relationship,
       is_primary: true,
     };
@@ -89,28 +91,30 @@ export async function saveDriverAction(formData: FormData) {
   }
 
   const licenceNumber = String(formData.get("licence_number") ?? "").trim();
-  if (licenceNumber) {
-    const licencePayload = {
-      driver_id: savedDriverId,
-      licence_number: licenceNumber,
-      licence_confirmed_green: formData.get("licence_confirmed_green") === "on",
-    };
+  const licencePayload = {
+    driver_id: savedDriverId,
+    licence_number: licenceNumber || null,
+    licence_type_id: String(formData.get("licence_type_id") ?? "").trim() || null,
+    licence_rating_id: String(formData.get("licence_rating_id") ?? "").trim() || null,
+    issuing_club_id: String(formData.get("issuing_club_id") ?? "").trim() || null,
+    licence_confirmed_green: formData.get("licence_confirmed_green") === "on",
+  };
 
-    const { data: existingLicence } = await supabase
-      .from("driver_licences")
-      .select("id")
-      .eq("driver_id", savedDriverId)
-      .limit(1)
-      .maybeSingle();
+  const { data: existingLicence } = await supabase
+    .from("driver_licences")
+    .select("id")
+    .eq("driver_id", savedDriverId)
+    .limit(1)
+    .maybeSingle();
 
-    if (existingLicence?.id) {
-      await supabase.from("driver_licences").update(licencePayload).eq("id", existingLicence.id);
-    } else {
-      await supabase.from("driver_licences").insert(licencePayload);
-    }
+  if (existingLicence?.id) {
+    await supabase.from("driver_licences").update(licencePayload).eq("id", existingLicence.id);
+  } else if (licenceNumber || licencePayload.licence_type_id || licencePayload.licence_rating_id) {
+    await supabase.from("driver_licences").insert(licencePayload);
   }
 
   revalidatePath("/account/drivers");
   revalidatePath("/account");
+  revalidatePath("/account/onboarding");
   return { success: true };
 }

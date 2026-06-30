@@ -6,7 +6,7 @@ import { createClientIfConfigured } from "@/lib/supabase/client";
 import { cn, focusRing } from "@/lib/cn";
 
 export function AccountNavLink({ className, onDark = true }: { className?: string; onDark?: boolean }) {
-  const [label, setLabel] = useState("Login");
+  const [label, setLabel] = useState("Member login");
   const [href, setHref] = useState("/login");
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function AccountNavLink({ className, onDark = true }: { className?: strin
         setLabel("Account");
         setHref("/account");
       } else {
-        setLabel("Login");
+        setLabel("Member login");
         setHref("/login");
       }
     });

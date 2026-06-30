@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   ...createPageMetadata({
     title: `${SITE_NAME} | Real Kart Racing at Sir Colin Giltrap Raceway`,
     description:
-      "Start karting, practise, race and get involved with KartSport Auckland Mt Wellington at Sir Colin Giltrap Raceway, Colin Dale Park.",
+      "Start karting, practice, race and get involved with KartSport Auckland Mt Wellington at Sir Colin Giltrap Raceway, Colin Dale Park.",
   }),
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.kartsportauckland.org.nz"),
 };

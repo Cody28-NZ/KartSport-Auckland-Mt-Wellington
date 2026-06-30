@@ -36,7 +36,7 @@ export default function PracticePage() {
         sections={[
           {
             id: "eligibility",
-            heading: "Who can practise",
+            heading: "Who can practice",
             body: [
               "Practice is for drivers with a valid KartSport NZ licence, compliant kart and safety gear, subject to club rules.",
               "Eligibility, session times and fees are to confirm. Check track availability before travelling.",
@@ -46,7 +46,7 @@ export default function PracticePage() {
             id: "visitors",
             heading: "Visiting drivers",
             body: [
-              "Licenced drivers from other clubs may practise at Auckland subject to club rules, capacity and fees.",
+              "Licenced drivers from other clubs may practice at Auckland subject to club rules, capacity and fees.",
               "See Visiting Racers for what to check before you travel.",
             ],
           },
