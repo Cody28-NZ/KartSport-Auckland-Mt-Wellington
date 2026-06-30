@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CheckYourEmailPanel } from "@/components/auth/CheckYourEmailPanel";
+import { buildAuthCallbackUrl, getSafeNextPath } from "@/lib/auth/safe-redirect";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { cn, btnPrimary, focusRing, tapTarget } from "@/lib/cn";
 
@@ -12,6 +14,9 @@ interface RegisterFormProps {
   loginHref?: string;
   emailInputId?: string;
   passwordInputId?: string;
+  embedded?: boolean;
+  onAwaitingEmailConfirmation?: () => void;
+  showInlineSuccess?: boolean;
 }
 
 export function RegisterForm({
@@ -20,6 +25,9 @@ export function RegisterForm({
   loginHref = "/login",
   emailInputId = "register-email",
   passwordInputId = "register-password",
+  embedded = false,
+  onAwaitingEmailConfirmation,
+  showInlineSuccess = true,
 }: RegisterFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -28,7 +36,17 @@ export function RegisterForm({
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const destination = nextPath && nextPath.startsWith("/") ? nextPath : "/account/membership/new";
+  const destination = getSafeNextPath(nextPath, "/account/membership/new");
+
+  const inputClass = embedded
+    ? "mt-1.5 w-full rounded-xl border border-border bg-surface-alt/40 px-3.5 py-2.5 text-sm text-ink transition-colors placeholder:text-ink-subtle focus:border-brand/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/15"
+    : "mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-ink";
+
+  const labelClass = "block text-sm font-medium text-ink";
+  const formSpacing = embedded ? "space-y-5" : "space-y-4";
+  const buttonClass = embedded
+    ? cn(btnPrimary, focusRing, tapTarget, "w-full rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-60")
+    : cn(btnPrimary, focusRing, tapTarget, "w-full rounded-lg px-4 py-2.5 text-sm font-medium disabled:opacity-60");
 
   useEffect(() => {
     const supabase = createClientIfConfigured();
@@ -38,6 +56,11 @@ export function RegisterForm({
       if (data.user) router.replace(destination);
     });
   }, [router, destination]);
+
+  function handleAwaitingConfirmation() {
+    setAwaitingConfirmation(true);
+    onAwaitingEmailConfirmation?.();
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +75,15 @@ export function RegisterForm({
       return;
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const emailRedirectTo = buildAuthCallbackUrl(window.location.origin, destination);
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo,
+      },
+    });
     setLoading(false);
 
     if (signUpError) {
@@ -66,30 +97,21 @@ export function RegisterForm({
       return;
     }
 
-    setAwaitingConfirmation(true);
+    handleAwaitingConfirmation();
   }
 
-  if (awaitingConfirmation) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-ink-muted">
-          Account created. Please check your email to confirm your account, then log in to continue your membership
-          application.
-        </p>
-        <Link
-          href={loginHref}
-          className={cn(btnPrimary, focusRing, tapTarget, "inline-flex w-full justify-center rounded-lg px-4 py-2.5 text-sm font-medium")}
-        >
-          Member login
-        </Link>
-      </div>
-    );
+  if (awaitingConfirmation && showInlineSuccess) {
+    return <CheckYourEmailPanel loginHref={loginHref} />;
+  }
+
+  if (awaitingConfirmation && !showInlineSuccess) {
+    return null;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className={formSpacing}>
       <div>
-        <label htmlFor={emailInputId} className="block text-sm font-medium text-ink">
+        <label htmlFor={emailInputId} className={labelClass}>
           Email
         </label>
         <input
@@ -99,11 +121,11 @@ export function RegisterForm({
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-ink"
+          className={inputClass}
         />
       </div>
       <div>
-        <label htmlFor={passwordInputId} className="block text-sm font-medium text-ink">
+        <label htmlFor={passwordInputId} className={labelClass}>
           Password
         </label>
         <input
@@ -114,18 +136,14 @@ export function RegisterForm({
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-ink"
+          className={inputClass}
         />
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={loading}
-        className={cn(btnPrimary, focusRing, tapTarget, "w-full rounded-lg px-4 py-2.5 text-sm font-medium disabled:opacity-60")}
-      >
+      <button type="submit" disabled={loading} className={buttonClass}>
         {loading ? "Creating account..." : submitLabel}
       </button>
-      <p className="text-sm text-ink-muted">
+      <p className="text-center text-sm text-ink-muted">
         Already have an account?{" "}
         <Link href={loginHref} className={cn("font-medium text-brand hover:text-brand-hover", focusRing)}>
           Member login

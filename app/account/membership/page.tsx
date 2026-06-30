@@ -1,18 +1,25 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/AccountShell";
+import { AcceptedTermsPanel } from "@/components/account/AcceptedTermsPanel";
 import { MembershipStatusBadge } from "@/components/account/MembershipStatusBadge";
 import { SupabaseSetupNotice } from "@/components/auth/SupabaseSetupNotice";
 import { CtaButton } from "@/components/ui/CtaButton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import {
+  applicantDisplayName,
+  applicationTypeLabel,
+  isJuniorApplication,
+  managedByDisplayName,
+  primaryProductName,
+} from "@/lib/account/application-display";
 import {
   currentSeasonLabel,
   formatCurrency,
   formatPaymentStatus,
   formatRegistrationStatus,
 } from "@/lib/account/format";
-import { formatMembershipIntent } from "@/lib/account/membership-intents";
-import { getMembershipApplicationsForCurrentUser } from "@/lib/data/membership";
+import { getMembershipApplicationsWithDetailsForCurrentUser } from "@/lib/data/membership";
 import { getCurrentUserProfile, requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createPageMetadata } from "@/lib/metadata";
@@ -41,7 +48,10 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
   if (redirectTo) redirect(redirectTo);
 
   const params = await searchParams;
-  const [profile, applications] = await Promise.all([getCurrentUserProfile(), getMembershipApplicationsForCurrentUser()]);
+  const [profile, applicationDetails] = await Promise.all([
+    getCurrentUserProfile(),
+    getMembershipApplicationsWithDetailsForCurrentUser(),
+  ]);
 
   return (
     <AccountShell
@@ -51,8 +61,9 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
       actions={<CtaButton label="Start new application" href="/account/membership/new" variant="primary" size="sm" />}
     >
       {params.submitted ? (
-        <div className={cn(cardBase, "mb-6 border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900")}>
-          Application submitted. Payment is handled separately by the club.
+        <div className={cn(cardBase, "mb-6 border-emerald-200 bg-emerald-50 p-5")}>
+          <h2 className="text-base font-semibold text-emerald-950">Application submitted</h2>
+          <p className="mt-1 text-sm text-emerald-900">Payment is handled separately by the club.</p>
         </div>
       ) : null}
 
@@ -68,36 +79,58 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
 
       <div className="mt-6">
         <h2 className="text-lg font-semibold text-ink">Submitted applications</h2>
-        {applications.length ? (
+        {applicationDetails.length ? (
           <ul className="mt-4 space-y-3">
-            {applications.map((application) => (
-              <li key={application.id} className={cn(cardBase, "p-5")}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-ink">{formatMembershipIntent(application.membership_intent)}</p>
-                    <p className="mt-1 text-sm text-ink-muted">
-                      Season {application.season_label} · Submitted {new Date(application.submitted_at).toLocaleDateString("en-NZ")}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <StatusBadge status="info" label={formatRegistrationStatus(application.status)} />
-                    <StatusBadge status="warning" label={formatPaymentStatus(application.payment_status)} />
-                  </div>
-                </div>
-                <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                  <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-ink-muted">Amount due</dt>
-                    <dd className="font-medium text-ink">{formatCurrency(Number(application.amount_due))}</dd>
-                  </div>
-                  {application.primary_driver_person_id ? (
-                    <div className="flex justify-between gap-4 sm:block">
-                      <dt className="text-ink-muted">Driver linked</dt>
-                      <dd className="font-medium text-ink">Yes</dd>
+            {applicationDetails.map(({ application, applicant, managedBy, items, acceptedTerms }) => {
+              const ctx = { application, applicant, managedBy, items };
+              const junior = isJuniorApplication(ctx);
+              return (
+                <li key={application.id} className={cn(cardBase, "p-5")}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-ink">
+                        {junior ? applicantDisplayName(applicant) : applicationTypeLabel(ctx)}
+                      </p>
+                      <p className="mt-1 text-sm text-ink-muted">
+                        {applicationTypeLabel(ctx)} · Submitted{" "}
+                        {new Date(application.submitted_at).toLocaleDateString("en-NZ")}
+                      </p>
                     </div>
-                  ) : null}
-                </dl>
-              </li>
-            ))}
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge status="info" label={formatRegistrationStatus(application.status)} />
+                      <StatusBadge status="warning" label={formatPaymentStatus(application.payment_status)} />
+                    </div>
+                  </div>
+                  <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                    {junior ? (
+                      <div>
+                        <dt className="text-ink-muted">Managed by</dt>
+                        <dd className="font-medium text-ink">{managedByDisplayName(managedBy) ?? "Account holder"}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt className="text-ink-muted">Member</dt>
+                      <dd className="font-medium text-ink">{applicantDisplayName(applicant)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-ink-muted">Membership product</dt>
+                      <dd className="font-medium text-ink">{primaryProductName(items) ?? "No product selected"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-ink-muted">Amount due</dt>
+                      <dd className="font-medium text-ink">{formatCurrency(Number(application.amount_due))}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-ink-muted">Terms accepted</dt>
+                      <dd className="font-medium text-ink">
+                        {acceptedTerms?.terms_version_label_snapshot ?? "Not recorded"}
+                      </dd>
+                    </div>
+                  </dl>
+                  {acceptedTerms ? <AcceptedTermsPanel acceptedTerms={acceptedTerms} /> : null}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <div className={cn(cardBase, "mt-4 p-6 text-center")}>

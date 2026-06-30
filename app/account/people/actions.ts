@@ -70,7 +70,6 @@ export async function savePersonAction(formData: FormData) {
       person_id: savedPersonId,
       default_class_id: nullableStr(formData, "default_class_id"),
       default_kart_number: nullableStr(formData, "kart_number"),
-      default_race_number: nullableStr(formData, "race_number"),
       default_transponder_number: nullableStr(formData, "transponder_number"),
       default_club_id: nullableStr(formData, "issuing_club_id"),
       active: true,

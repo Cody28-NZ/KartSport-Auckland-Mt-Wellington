@@ -21,7 +21,7 @@ export function VenueSection() {
             alt="Wide view of Sir Colin Giltrap Raceway at Colin Dale Park"
             fallbackSrc="/images/hero.jpg"
             fill
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1200px"
           />
         </div>
 

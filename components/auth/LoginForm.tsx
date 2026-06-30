@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getSafeNextPath } from "@/lib/auth/safe-redirect";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { cn, btnPrimary, focusRing, tapTarget } from "@/lib/cn";
 
@@ -17,7 +18,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const destination = nextPath && nextPath.startsWith("/") ? nextPath : "/account";
+  const destination = getSafeNextPath(nextPath, "/account");
 
   useEffect(() => {
     const supabase = createClientIfConfigured();

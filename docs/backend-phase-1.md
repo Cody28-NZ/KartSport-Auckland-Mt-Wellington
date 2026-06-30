@@ -39,7 +39,9 @@ There is no production member data to preserve at this stage.
 ### Driver profiles (`driver_profiles`)
 
 - Only for people who drive (`is_driver = true`)
-- Kart class, numbers, transponder, default club
+- Default kart class, **kart number**, transponder, default club
+- **Kart number** is the club-facing racing number used on membership and driver forms
+- There is no separate saved “race number” on driver profiles; an earlier `default_race_number` field was removed during development
 
 ### Licences (`driver_licences`)
 
@@ -63,6 +65,7 @@ There is no production member data to preserve at this stage.
 
 - `practice_registrations` and `race_entries` reference `person_id` and optional `driver_profile_id`
 - Support visiting drivers and club members
+- `race_entries.kart_number` stores the kart number for the entry (not a separate race number field)
 
 ## Supabase setup
 
@@ -76,7 +79,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 4. Run migrations (see reset note above).
-5. Configure Auth site URL and redirect URLs (`http://localhost:3000`).
+5. Configure **Auth → URL Configuration** in the Supabase Dashboard:
+
+   - **Site URL** — your primary app URL (e.g. `http://localhost:3000` for local dev, or `https://YOUR-DOMAIN` in production).
+   - **Redirect URLs** — must include every URL Supabase may send users to after email confirmation. Add both local and production callback URLs:
+
+   ```
+   http://localhost:3000/auth/callback
+   https://YOUR-DOMAIN/auth/callback
+   ```
+
+   Signup passes `emailRedirectTo` so confirmation emails return users to `/auth/callback?next=/account/membership/new`, which exchanges the auth code and forwards them into the membership application.
+
+   If confirmation emails still land on the homepage, check **Auth → URL Configuration** and confirm `emailRedirectTo` is set in the signup call (`components/auth/RegisterForm.tsx`).
+
 6. Promote an admin user after first registration:
 
 ```sql
@@ -92,6 +108,16 @@ update public.profiles set is_admin = true where email = 'you@example.com';
 - `practice_sessions`, `practice_registrations`, `practice_products`, `practice_registration_items`
 - `race_events`, `race_entries`, `race_entry_products`, `race_entry_items`
 - `terms_versions`, `accepted_terms`
+
+### Membership terms
+
+- Current membership terms are stored in `terms_versions` with `context = membership`.
+- The active version is shown in the membership application wizard (`/account/membership/new`).
+- When an application is submitted, the accepted terms are **snapshotted** into `accepted_terms` (title, body, version label, accepted-by name, applicant name, and application reference).
+- `terms_versions` rows that have been accepted should be treated as **immutable** — create a new version (and deactivate the old one) instead of editing wording that may already be on record.
+- Current terms version: **2025-26** (`Membership Terms and Conditions 2025/26`). Confirm wording before launch.
+- The provided terms reference **Rosebank Rd Domain** and **31 March 2026** — confirm whether these should be updated before go-live.
+- Future email notification to the club secretary/admin after submission is planned but **not built yet** (see `lib/notifications/membership.ts`).
 - `admin_roles`
 
 ## RLS summary
@@ -107,8 +133,9 @@ update public.profiles set is_admin = true where email = 'you@example.com';
 | Route | Purpose |
 |-------|---------|
 | `/become-a-member` | Public membership/visitor landing |
-| `/login` | Member login |
+| `/login` | Member login (`?next=` for safe post-login redirect) |
 | `/register` | Create account → membership application |
+| `/auth/callback` | Email confirmation handler → membership or login |
 | `/account` | Dashboard |
 | `/account/profile` | Account holder details |
 | `/account/people` | People & drivers management |
@@ -131,10 +158,14 @@ update public.profiles set is_admin = true where email = 'you@example.com';
 2. Race entry UI
 3. Admin dashboard and membership approval
 4. External payment handoff
+5. Email notification to club secretary/admin when a membership application is submitted (`lib/notifications/membership.ts`)
 
 ## Manual checks after reset
 
-- Register → redirected to `/account/membership/new`
+- `/become-a-member` → create account → see “Check your email” (not a login form)
+- Confirm email → lands at `/auth/callback` → redirected to `/account/membership/new`
+- `/login?next=/account/membership/new` → after login, lands on membership application
+- Logged-in user on `/become-a-member` → “Continue application” card
 - Complete wizard for junior member → guardian relationship created
 - Add social/pit person under `/account/people` without driver fields
 - Confirm `/account/drivers` redirects to `/account/people`

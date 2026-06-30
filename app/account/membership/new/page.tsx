@@ -44,7 +44,7 @@ export default async function NewMembershipPage() {
     <AccountShell
       currentPath="/account/membership"
       title="Membership application"
-      description="Register as a member or visiting driver. Payment is handled separately by the club."
+      description="Register a junior driver, adult driver, social/pit member or visiting driver. Payment is handled separately by the club."
     >
       <MembershipWizard
         profile={profile}

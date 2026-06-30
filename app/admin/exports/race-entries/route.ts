@@ -21,7 +21,7 @@ export async function GET() {
     .select(
       `
       id,
-      race_number,
+      kart_number,
       ksnz_licence_number,
       transponder_number,
       transponder_hire_required,
@@ -53,7 +53,7 @@ export async function GET() {
       driver_dob: person?.date_of_birth ?? "",
       driver_email: person?.email ?? profile?.email ?? "",
       driver_phone: person?.phone ?? profile?.phone ?? "",
-      race_number: row.race_number ?? "",
+      kart_number: row.kart_number ?? "",
       ksnz_licence_number: row.ksnz_licence_number ?? "",
       transponder_number: row.transponder_number ?? "",
       transponder_hire_required: row.transponder_hire_required ? "yes" : "no",

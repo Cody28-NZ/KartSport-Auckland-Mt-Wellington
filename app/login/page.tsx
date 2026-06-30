@@ -1,3 +1,4 @@
+import { getSafeNextPath } from "@/lib/auth/safe-redirect";
 import { Container } from "@/components/ui/Container";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SupabaseSetupNotice } from "@/components/auth/SupabaseSetupNotice";
@@ -17,6 +18,7 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
+  const nextPath = getSafeNextPath(params.next, "/account");
 
   return (
     <section className={cn(sectionDefault, sectionHome)}>
@@ -28,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="mt-6">
           {isSupabaseConfigured() ? (
             <div className={cn(cardBase, "p-6")}>
-              <LoginForm nextPath={params.next} />
+              <LoginForm nextPath={nextPath} />
             </div>
           ) : (
             <SupabaseSetupNotice />

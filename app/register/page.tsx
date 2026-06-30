@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { SupabaseSetupNotice } from "@/components/auth/SupabaseSetupNotice";
+import { getSafeNextPath } from "@/lib/auth/safe-redirect";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createPageMetadata } from "@/lib/metadata";
@@ -25,7 +26,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   }
 
   const params = await searchParams;
-  const nextPath = params.next ?? "/account/membership/new";
+  const nextPath = getSafeNextPath(params.next, "/account/membership/new");
   const loginHref = `/login?next=${encodeURIComponent(nextPath)}`;
 
   return (

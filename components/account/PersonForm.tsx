@@ -7,6 +7,7 @@ import { isJuniorPerson } from "@/lib/people/utils";
 import type { DriverLicence, DriverProfile, Person, PersonType } from "@/types/database";
 import { cn, btnPrimary, cardBase, focusRing, tapTarget } from "@/lib/cn";
 import {
+  accountHelperTextClass,
   accountInputClass,
   accountLabelClass,
   accountSectionClass,
@@ -143,10 +144,12 @@ export function PersonForm({
                 ))}
               </select>
             </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <input name="kart_number" placeholder="Kart number" defaultValue={driverProfile?.default_kart_number ?? ""} className={accountInputClass} />
-              <input name="race_number" placeholder="Race number" defaultValue={driverProfile?.default_race_number ?? ""} className={accountInputClass} />
-              <input name="transponder_number" placeholder="Transponder" defaultValue={driverProfile?.default_transponder_number ?? ""} className={accountInputClass} />
+              <div>
+                <input name="transponder_number" placeholder="Transponder number" defaultValue={driverProfile?.default_transponder_number ?? ""} className={accountInputClass} />
+                <p className={accountHelperTextClass}>Only enter this if you own your own transponder.</p>
+              </div>
             </div>
           </div>
 

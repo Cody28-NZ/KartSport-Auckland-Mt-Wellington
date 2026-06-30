@@ -51,6 +51,9 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
       title="People & Drivers"
       description="Manage family members, drivers, social/pit members and visiting drivers on this account."
     >
+      <p className="text-sm text-ink-muted">
+        People and drivers are usually created through a membership application. You can also manage or update them here.
+      </p>
       <div className="space-y-8">
         <div>
           <h2 className="text-lg font-semibold text-ink">{editing ? "Edit person" : "Add person"}</h2>

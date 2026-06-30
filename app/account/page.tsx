@@ -8,14 +8,20 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CtaButton } from "@/components/ui/CtaButton";
 import { signOutAction } from "@/app/account/actions";
 import {
+  applicantDisplayName,
+  applicationTypeLabel,
+  isJuniorApplication,
+  managedByDisplayName,
+  primaryProductName,
+} from "@/lib/account/application-display";
+import {
   formatCurrency,
   formatPaymentStatus,
   hasPeople,
   hasSubmittedMembership,
   isProfileComplete,
 } from "@/lib/account/format";
-import { formatMembershipIntent } from "@/lib/account/membership-intents";
-import { getMembershipApplicationsForCurrentUser } from "@/lib/data/membership";
+import { getMembershipApplicationsWithDetailsForCurrentUser } from "@/lib/data/membership";
 import { getPeopleForCurrentUser } from "@/lib/data/people";
 import { getCurrentUserProfile, requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -40,23 +46,24 @@ export default async function AccountPage() {
   const { user, redirectTo } = await requireUser();
   if (redirectTo) redirect(redirectTo);
 
-  const [profile, people, applications] = await Promise.all([
+  const [profile, people, applicationDetails] = await Promise.all([
     getCurrentUserProfile(),
     getPeopleForCurrentUser(),
-    getMembershipApplicationsForCurrentUser(),
+    getMembershipApplicationsWithDetailsForCurrentUser(),
   ]);
 
+  const applications = applicationDetails.map((d) => d.application);
   const profileComplete = isProfileComplete(profile);
   const peopleCount = people.length;
-  const submittedApplications = applications.filter((app) => app.status === "submitted");
-  const latestApplication = submittedApplications[0] ?? applications[0] ?? null;
+  const latestDetail = applicationDetails[0] ?? null;
+  const latestApplication = latestDetail?.application ?? null;
   const hasMembership = hasSubmittedMembership(applications);
-  const isEmpty = !peopleCount && !applications.length;
+  const noApplication = !applications.length;
 
   return (
     <AccountShell
       currentPath="/account"
-      title={isEmpty ? "Welcome" : "Dashboard"}
+      title={noApplication ? "Welcome" : "Dashboard"}
       description={user?.email ?? undefined}
       showBackLink={false}
       actions={
@@ -73,19 +80,19 @@ export default async function AccountPage() {
         </form>
       }
     >
-      {isEmpty ? (
-        <div className={cn(cardBase, "p-6 text-center")}>
-          <p className="text-sm text-ink-muted">
-            Start by registering as a member or visiting driver. You can manage family members, drivers and memberships from this account.
+      {noApplication ? (
+        <div className={cn(cardBase, "p-6")}>
+          <h2 className="text-lg font-semibold text-ink">Start membership application</h2>
+          <p className="mt-2 text-sm text-ink-muted">
+            Register a junior driver, adult driver, social/pit member or visiting driver.
           </p>
-          <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-5">
             <CtaButton label="Start membership application" href="/account/membership/new" variant="primary" />
-            <CtaButton label="Register as visiting driver" href="/account/membership/new" variant="secondary" />
           </div>
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className={cn(cardBase, "p-5")}>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Account holder</h2>
           <p className="mt-2 font-medium text-ink">
@@ -104,11 +111,27 @@ export default async function AccountPage() {
           <div className="mt-3">
             <MembershipStatusBadge status={profile?.membership_status} />
           </div>
-          {latestApplication ? (
-            <p className="mt-3 text-sm text-ink-muted">
-              Latest: {formatMembershipIntent(latestApplication.membership_intent)} ·{" "}
-              {formatPaymentStatus(latestApplication.payment_status)}
-            </p>
+          {latestDetail ? (
+            <div className="mt-3 space-y-1 text-sm text-ink-muted">
+              {isJuniorApplication({ application: latestDetail.application, applicant: latestDetail.applicant, managedBy: latestDetail.managedBy, items: latestDetail.items }) ? (
+                <>
+                  <p>
+                    Member: <span className="font-medium text-ink">{applicantDisplayName(latestDetail.applicant)}</span>
+                  </p>
+                  <p>
+                    Managed by:{" "}
+                    <span className="font-medium text-ink">
+                      {managedByDisplayName(latestDetail.managedBy) ?? "Account holder"}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <p>
+                  Latest: {applicationTypeLabel({ application: latestDetail.application, applicant: latestDetail.applicant, managedBy: latestDetail.managedBy, items: latestDetail.items })} ·{" "}
+                  {formatPaymentStatus(latestDetail.application.payment_status)}
+                </p>
+              )}
+            </div>
           ) : (
             <p className="mt-3 text-sm text-ink-muted">No membership application yet.</p>
           )}
@@ -134,9 +157,9 @@ export default async function AccountPage() {
             </ul>
           ) : (
             <div className="mt-4 rounded-lg border border-dashed border-border bg-surface-alt/50 p-4 text-center">
-              <p className="text-sm text-ink-muted">No people added yet.</p>
-              <Link href="/account/people" className={cn("mt-2 inline-block text-sm font-medium text-brand hover:text-brand-hover", focusRing)}>
-                Add a person
+              <p className="text-sm text-ink-muted">People are usually created through a membership application.</p>
+              <Link href="/account/membership/new" className={cn("mt-2 inline-block text-sm font-medium text-brand hover:text-brand-hover", focusRing)}>
+                Start membership application
               </Link>
             </div>
           )}
@@ -149,19 +172,42 @@ export default async function AccountPage() {
               View all
             </Link>
           </div>
-          {latestApplication ? (
+          {latestDetail ? (
             <dl className="mt-3 space-y-2 text-sm">
+              {isJuniorApplication({ application: latestDetail.application, applicant: latestDetail.applicant, managedBy: latestDetail.managedBy, items: latestDetail.items }) ? (
+                <>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-ink-muted">Member</dt>
+                    <dd className="text-right font-medium text-ink">{applicantDisplayName(latestDetail.applicant)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-ink-muted">Managed by</dt>
+                    <dd className="text-right font-medium text-ink">
+                      {managedByDisplayName(latestDetail.managedBy) ?? "Account holder"}
+                    </dd>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-ink-muted">Type</dt>
+                  <dd className="text-right font-medium text-ink">
+                    {applicationTypeLabel({ application: latestDetail.application, applicant: latestDetail.applicant, managedBy: latestDetail.managedBy, items: latestDetail.items })}
+                  </dd>
+                </div>
+              )}
               <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">Type</dt>
-                <dd className="text-right font-medium text-ink">{formatMembershipIntent(latestApplication.membership_intent)}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">Season</dt>
-                <dd className="font-medium text-ink">{latestApplication.season_label}</dd>
+                <dt className="text-ink-muted">Product</dt>
+                <dd className="text-right font-medium text-ink">
+                  {primaryProductName(latestDetail.items) ?? "—"}
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-ink-muted">Amount due</dt>
-                <dd className="font-medium text-ink">{formatCurrency(Number(latestApplication.amount_due))}</dd>
+                <dd className="font-medium text-ink">{formatCurrency(Number(latestApplication?.amount_due ?? 0))}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-muted">Payment</dt>
+                <dd className="font-medium text-ink">{formatPaymentStatus(latestApplication?.payment_status ?? "not_required")}</dd>
               </div>
             </dl>
           ) : (
@@ -179,7 +225,7 @@ export default async function AccountPage() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <QuickActionCard title="People & Drivers" description="Manage family, drivers and non-driving members." href="/account/people" badge={peopleCount ? `${peopleCount} saved` : undefined} />
           <QuickActionCard title="Account profile" description="Login owner contact details." href="/account/profile" badge={profileComplete ? "Done" : "Incomplete"} />
-          <QuickActionCard title={hasMembership ? "View membership" : "Become a member"} description="Submit or review membership applications." href={hasMembership ? "/account/membership" : "/account/membership/new"} />
+          <QuickActionCard title={hasMembership ? "View membership" : "Start membership application"} description="Submit or review membership applications." href={hasMembership ? "/account/membership" : "/account/membership/new"} />
           <QuickActionCard title="Practice registrations" description="Coming soon." disabled badge="Coming soon" />
           <QuickActionCard title="Race entries" description="Coming soon." disabled badge="Coming soon" />
           {!profileComplete || !hasPeople(people) || !hasMembership ? (

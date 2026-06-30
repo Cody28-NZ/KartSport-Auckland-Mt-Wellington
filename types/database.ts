@@ -109,7 +109,6 @@ export interface DriverProfile {
   person_id: string;
   default_class_id: string | null;
   default_kart_number: string | null;
-  default_race_number: string | null;
   default_transponder_number: string | null;
   default_club_id: string | null;
   active: boolean;
@@ -200,7 +199,7 @@ export interface RaceEntry {
   person_id: string;
   driver_profile_id: string | null;
   class_id: string | null;
-  race_number: string | null;
+  kart_number: string | null;
   ksnz_licence_number: string | null;
   licence_rating_id: string | null;
   club_id: string | null;
@@ -283,4 +282,23 @@ export interface TermsVersion {
   body: string;
   active: boolean;
   created_at: string;
+}
+
+export interface AcceptedTerms {
+  id: string;
+  user_id: string;
+  person_id: string | null;
+  terms_version_id: string;
+  terms_context_snapshot: string;
+  terms_version_label_snapshot: string;
+  terms_title_snapshot: string;
+  terms_body_snapshot: string;
+  accepted_by_name_snapshot: string;
+  applicant_name_snapshot: string;
+  application_type_snapshot: string | null;
+  related_application_id: string | null;
+  related_application_table: string | null;
+  accepted_at: string;
+  ip_address: string | null;
+  user_agent: string | null;
 }
