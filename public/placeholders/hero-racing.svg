@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Kart racing at Sir Colin Giltrap Raceway">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <linearGradient id="red-line" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#dc2626" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#dc2626" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <path d="M120 420 Q280 140 480 220 T880 300 T1020 460 T560 520 T120 420" fill="none" stroke="#3f3f46" stroke-width="36" stroke-linecap="round"/>
+  <path d="M200 380 Q320 240 440 250 T680 280" fill="none" stroke="url(#red-line)" stroke-width="3" stroke-linecap="round"/>
+  <g transform="translate(620,310) rotate(-6)">
+    <rect x="-40" y="-10" width="80" height="18" rx="4" fill="#52525b"/>
+    <circle cx="-24" cy="14" r="11" fill="#27272a" stroke="#52525b" stroke-width="2"/>
+    <circle cx="24" cy="14" r="11" fill="#27272a" stroke="#52525b" stroke-width="2"/>
+    <circle cx="-24" cy="14" r="4" fill="#dc2626"/>
+    <circle cx="24" cy="14" r="4" fill="#dc2626"/>
+  </g>
+  <text x="600" y="620" fill="#71717a" font-family="system-ui,sans-serif" font-size="22" text-anchor="middle" letter-spacing="0.15em">SIR COLIN GILTRAP RACEWAY</text>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Track map placeholder">
+  <rect width="900" height="700" fill="#18181b"/>
+  <path d="M140 500 Q220 180 450 220 T760 320 T820 520 T520 560 T140 500" fill="none" stroke="#52525b" stroke-width="20"/>
+  <text x="450" y="360" fill="#71717a" font-family="system-ui,sans-serif" font-size="24" text-anchor="middle">Track map placeholder</text>
+</svg>

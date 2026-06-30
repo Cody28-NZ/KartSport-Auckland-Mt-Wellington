@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" role="img" aria-label="Document placeholder">
+  <rect width="400" height="520" fill="#18181b" stroke="#3f3f46"/>
+  <rect x="60" y="80" width="280" height="16" fill="#3f3f46"/>
+  <rect x="60" y="120" width="240" height="12" fill="#27272a"/>
+  <rect x="60" y="150" width="260" height="12" fill="#27272a"/>
+  <text x="200" y="420" fill="#71717a" font-family="system-ui,sans-serif" font-size="18" text-anchor="middle">Document placeholder</text>
+</svg>

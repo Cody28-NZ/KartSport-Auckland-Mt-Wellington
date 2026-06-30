@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Kart placeholder">
+  <rect width="800" height="600" fill="#18181b"/>
+  <rect x="220" y="260" width="360" height="120" rx="12" fill="#27272a" stroke="#52525b"/>
+  <circle cx="280" cy="380" r="36" fill="#3f3f46"/>
+  <circle cx="520" cy="380" r="36" fill="#3f3f46"/>
+  <text x="400" y="200" fill="#71717a" font-family="system-ui,sans-serif" font-size="22" text-anchor="middle">Kart placeholder</text>
+</svg>
