@@ -8,14 +8,24 @@ import { cn, btnPrimary, focusRing, tapTarget } from "@/lib/cn";
 
 interface RegisterFormProps {
   nextPath?: string;
+  submitLabel?: string;
+  loginHref?: string;
+  emailInputId?: string;
+  passwordInputId?: string;
 }
 
-export function RegisterForm({ nextPath }: RegisterFormProps) {
+export function RegisterForm({
+  nextPath,
+  submitLabel = "Create account",
+  loginHref = "/login",
+  emailInputId = "register-email",
+  passwordInputId = "register-password",
+}: RegisterFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const destination = nextPath && nextPath.startsWith("/") ? nextPath : "/account/membership/new";
@@ -25,14 +35,14 @@ export function RegisterForm({ nextPath }: RegisterFormProps) {
     if (!supabase) return;
 
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.replace("/account");
+      if (data.user) router.replace(destination);
     });
-  }, [router]);
+  }, [router, destination]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setMessage(null);
+    setAwaitingConfirmation(false);
     setLoading(true);
 
     const supabase = createClientIfConfigured();
@@ -56,17 +66,34 @@ export function RegisterForm({ nextPath }: RegisterFormProps) {
       return;
     }
 
-    setMessage("Account created. Check your email if confirmation is required, then sign in.");
+    setAwaitingConfirmation(true);
+  }
+
+  if (awaitingConfirmation) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-ink-muted">
+          Account created. Please check your email to confirm your account, then log in to continue your membership
+          application.
+        </p>
+        <Link
+          href={loginHref}
+          className={cn(btnPrimary, focusRing, tapTarget, "inline-flex w-full justify-center rounded-lg px-4 py-2.5 text-sm font-medium")}
+        >
+          Member login
+        </Link>
+      </div>
+    );
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="register-email" className="block text-sm font-medium text-ink">
+        <label htmlFor={emailInputId} className="block text-sm font-medium text-ink">
           Email
         </label>
         <input
-          id="register-email"
+          id={emailInputId}
           type="email"
           autoComplete="email"
           required
@@ -76,11 +103,11 @@ export function RegisterForm({ nextPath }: RegisterFormProps) {
         />
       </div>
       <div>
-        <label htmlFor="register-password" className="block text-sm font-medium text-ink">
+        <label htmlFor={passwordInputId} className="block text-sm font-medium text-ink">
           Password
         </label>
         <input
-          id="register-password"
+          id={passwordInputId}
           type="password"
           autoComplete="new-password"
           required
@@ -91,17 +118,16 @@ export function RegisterForm({ nextPath }: RegisterFormProps) {
         />
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {message ? <p className="text-sm text-ink-muted">{message}</p> : null}
       <button
         type="submit"
         disabled={loading}
         className={cn(btnPrimary, focusRing, tapTarget, "w-full rounded-lg px-4 py-2.5 text-sm font-medium disabled:opacity-60")}
       >
-        {loading ? "Creating account..." : "Create account"}
+        {loading ? "Creating account..." : submitLabel}
       </button>
       <p className="text-sm text-ink-muted">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-brand hover:text-brand-hover">
+        <Link href={loginHref} className={cn("font-medium text-brand hover:text-brand-hover", focusRing)}>
           Member login
         </Link>
       </p>
