@@ -39,7 +39,7 @@ export const btnGhostDark =
 
 export const btnPill = "rounded-full";
 
-/* Sections - alternating white / pale blue-grey */
+/* Sections - alternating white / subtle light grey */
 export const sectionDefault = "bg-surface text-ink";
 export const sectionMuted = "bg-surface-alt border-y border-border text-ink";
 export const sectionElevated = "bg-white border-y border-border text-ink";

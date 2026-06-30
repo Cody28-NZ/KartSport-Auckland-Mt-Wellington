@@ -1,14 +1,14 @@
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { InfoCard } from "@/components/site/InfoCard";
 import { SiteImage } from "@/components/site/SiteImage";
-import { cn, cardBase, sectionMuted, sectionHome, textEyebrow } from "@/lib/cn";
+import { cn, cardBase, sectionDefault, sectionHome } from "@/lib/cn";
 
 export function CommunitySection() {
   return (
-    <section className={cn(sectionMuted, sectionHome)}>
+    <section className={cn(sectionDefault, sectionHome)}>
       <Container>
-        <p className={textEyebrow}>Community</p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
           Supported by partners and volunteers
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-ink-muted sm:text-base">
@@ -24,42 +24,45 @@ export function CommunitySection() {
           />
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-[12rem_1fr] lg:items-start">
-          <div className={cn(cardBase, "relative flex items-center justify-center p-4")}>
-            <div className="relative h-14 w-full max-w-[10rem]">
-              <SiteImage
-                src="/images/giltrap-logo.jpg"
-                alt="Giltrap - principal sponsor"
-                fill
-                sizes="160px"
-                imageClassName="object-contain"
-              />
-            </div>
+        <div className="mt-6 flex justify-center">
+          <div
+            className={cn(
+              cardBase,
+              "inline-flex w-full max-w-[20rem] items-center justify-center px-6 py-5 sm:max-w-[18rem] sm:px-8 sm:py-6 lg:max-w-[32rem] lg:px-10 lg:py-7",
+            )}
+          >
+            <Image
+              src="/images/giltrap-logo.jpg"
+              alt="Giltrap - principal sponsor"
+              width={520}
+              height={160}
+              className="h-auto w-full max-w-[15rem] object-contain sm:max-w-[18rem] lg:max-w-[26rem] xl:max-w-[32rem]"
+            />
           </div>
+        </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <InfoCard
-              id="sponsors"
-              title="Sponsors"
-              body="Partners who support Auckland karting."
-              href="/sponsors"
-              ctaLabel="View sponsors"
-            />
-            <InfoCard
-              id="volunteers"
-              title="Volunteers and officials"
-              body="Help run safe, fair club days."
-              href="/volunteers"
-              ctaLabel="Get involved"
-            />
-            <InfoCard
-              id="contact-club"
-              title="Contact the club"
-              body="Membership, racing and general enquiries."
-              href="/contact"
-              ctaLabel="Contact"
-            />
-          </div>
+        <div className="mx-auto mt-6 grid max-w-4xl gap-3 sm:grid-cols-3">
+          <InfoCard
+            id="sponsors"
+            title="Sponsors"
+            body="Partners who support Auckland karting."
+            href="/sponsors"
+            ctaLabel="View sponsors"
+          />
+          <InfoCard
+            id="volunteers"
+            title="Volunteers and officials"
+            body="Help run safe, fair club days."
+            href="/volunteers"
+            ctaLabel="Get involved"
+          />
+          <InfoCard
+            id="contact-club"
+            title="Contact the club"
+            body="Membership, racing and general enquiries."
+            href="/contact"
+            ctaLabel="Contact"
+          />
         </div>
       </Container>
     </section>

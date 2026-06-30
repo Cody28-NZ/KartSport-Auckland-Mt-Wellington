@@ -2,43 +2,39 @@ import Image from "next/image";
 import Link from "next/link";
 import { footerNavigation } from "@/data/navigation";
 import { SITE_NAME, VENUE_NAME, VENUE_PARK } from "@/data/site";
-import { cn, focusRing, sectionFooter, textLinkDark } from "@/lib/cn";
+import { cn, focusRing, sectionFooter } from "@/lib/cn";
 import { Container } from "@/components/ui/Container";
-import { SourceOfTruthNotice } from "@/components/site/SourceOfTruthNotice";
 
 export function Footer() {
   const year = new Date().getFullYear();
 
   return (
     <footer className={sectionFooter}>
-      <Container className="py-12 lg:py-14">
-        <div className="mb-10 flex max-w-md items-start gap-4">
+      <Container className="py-8 sm:py-9 lg:py-12">
+        <Link href="/" className={cn("mb-6 inline-flex items-center gap-3 lg:mb-7", focusRing)}>
           <Image
             src="/images/club-logo.png"
-            alt="KartSport Auckland Mt Wellington"
-            width={48}
-            height={48}
-            className="h-12 w-12 shrink-0 object-contain"
+            alt=""
+            width={56}
+            height={56}
+            className="h-11 w-11 shrink-0 object-contain"
           />
-          <div>
-            <p className="text-base font-semibold text-white">{SITE_NAME}</p>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">
-              Real competition karting at {VENUE_NAME}, {VENUE_PARK}, Auckland.
-            </p>
-          </div>
-        </div>
+          <span className="text-sm font-semibold leading-snug text-white sm:text-base lg:whitespace-nowrap">
+            {SITE_NAME}
+          </span>
+        </Link>
 
-        <div className="grid gap-8 border-t border-white/10 pt-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 border-t border-white/10 pt-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:pt-7">
           {footerNavigation.map((group) => (
             <div key={group.id}>
               <h2 className="text-xs font-semibold tracking-wide text-white/90">{group.title}</h2>
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-2.5 space-y-1.5">
                 {group.links.map((link) => (
                   <li key={link.id}>
                     <Link
                       href={link.href}
                       className={cn(
-                        "inline-flex min-h-9 items-center text-sm text-white/55 transition-colors hover:text-white",
+                        "inline-flex text-sm leading-snug text-white/55 transition-colors hover:text-white",
                         focusRing,
                       )}
                     >
@@ -51,15 +47,13 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-8">
-          <SourceOfTruthNotice compact variant="dark" />
-        </div>
-
-        <div className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {year} {SITE_NAME}. All rights reserved.</p>
-          <Link href="/venue" className={cn(textLinkDark, focusRing, "text-xs font-normal text-white/55")}>
-            {VENUE_NAME}, {VENUE_PARK}
-          </Link>
+        <div className="mt-6 border-t border-white/10 pt-5 text-xs leading-relaxed text-white/45 lg:mt-7">
+          <p>
+            &copy; {year} {SITE_NAME}. All rights reserved.
+          </p>
+          <p className="mt-1">
+            {VENUE_NAME}, {VENUE_PARK}.
+          </p>
         </div>
       </Container>
     </footer>

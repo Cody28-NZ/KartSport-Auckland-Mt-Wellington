@@ -1,10 +1,10 @@
 import { Container } from "@/components/ui/Container";
 import { CtaButton } from "@/components/ui/CtaButton";
-import { cn, cardElevated, sectionDefault, sectionHome, textEyebrow } from "@/lib/cn";
+import { cn, cardElevated, sectionMuted, sectionHome, textEyebrow } from "@/lib/cn";
 
 export function HomeFinalCta() {
   return (
-    <section className={cn(sectionDefault, sectionHome, "border-t border-border")}>
+    <section className={cn(sectionMuted, sectionHome, "border-t border-border")}>
       <Container>
         <div className={cn(cardElevated, "overflow-hidden")}>
           <div className="bg-gradient-to-br from-brand/[0.06] via-white to-white p-6 sm:p-8 lg:p-10">

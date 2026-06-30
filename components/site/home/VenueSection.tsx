@@ -1,17 +1,15 @@
-import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { InfoCard } from "@/components/site/InfoCard";
 import { SiteImage } from "@/components/site/SiteImage";
 import { venueName, venuePark } from "@/data/venue";
-import { cn, focusRing, sectionMuted, sectionHome, textEyebrow, textLink } from "@/lib/cn";
+import { cn, sectionDefault, sectionHome } from "@/lib/cn";
 
 export function VenueSection() {
   return (
-    <section className={cn(sectionMuted, sectionHome)}>
+    <section className={cn(sectionDefault, sectionHome)}>
       <Container>
-        <p className={textEyebrow}>{venueName}</p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Sir Colin Giltrap Raceway
+        <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          {venueName}
         </h2>
         <p className="mt-2 text-sm text-ink-muted sm:text-base">
           Home of KartSport Auckland Mt Wellington at {venuePark}.
@@ -33,10 +31,6 @@ export function VenueSection() {
           <InfoCard id="venue-practice" title="Practice" body="Practice days and registration." href="/practice" ctaLabel="Practice" />
           <InfoCard id="venue-calendar" title="Calendar" body="Upcoming club activity." href="/calendar" ctaLabel="Calendar" />
         </div>
-
-        <Link href="/venue" className={cn("mt-5 inline-flex text-sm", textLink, focusRing)}>
-          Venue information &rarr;
-        </Link>
       </Container>
     </section>
   );

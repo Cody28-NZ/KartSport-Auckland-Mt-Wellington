@@ -9,7 +9,7 @@ import { CommunitySection } from "@/components/site/home/CommunitySection";
 import { HomeFinalCta } from "@/components/site/home/HomeFinalCta";
 import { newsPosts } from "@/data/news";
 import type { NewsPost } from "@/types/content";
-import { cn, focusRing, sectionHome, textLink } from "@/lib/cn";
+import { cn, focusRing, sectionHome, sectionMuted, textLink } from "@/lib/cn";
 
 export const metadata = createPageMetadata({
   title: "KartSport Auckland Mt Wellington | Real Kart Racing at Sir Colin Giltrap Raceway",
@@ -50,12 +50,9 @@ export default function HomePage() {
 
       <VenueSection />
 
-      <CommunitySection />
-
-      <section className={cn("bg-surface", sectionHome)}>
+      <section className={cn(sectionMuted, sectionHome)}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-medium tracking-wide text-ink-subtle">News</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
             Latest from the club
           </h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,6 +71,8 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <CommunitySection />
 
       <HomeFinalCta />
     </>

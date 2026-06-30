@@ -69,7 +69,7 @@ export const mobileNavigationGroups: MobileNavGroup[] = [
 export const footerNavigation: FooterGroup[] = [
   {
     id: "footer-member",
-    title: "Member links",
+    title: "Member Links",
     links: [
       { id: "race-entries", label: "Race Entries", href: "/race-entries" },
       { id: "practice", label: "Practice", href: "/practice" },
@@ -80,7 +80,7 @@ export const footerNavigation: FooterGroup[] = [
   },
   {
     id: "footer-start-karting",
-    title: "Start karting",
+    title: "Start Karting",
     links: [
       { id: "start-karting", label: "Start Karting", href: "/start-karting" },
       {
@@ -96,7 +96,7 @@ export const footerNavigation: FooterGroup[] = [
   },
   {
     id: "footer-venue",
-    title: "Venue and visitors",
+    title: "Venue and Visitors",
     links: [
       { id: "venue", label: "Venue", href: "/venue" },
       { id: "visiting-racers", label: "Visiting Racers", href: "/visiting-racers" },
