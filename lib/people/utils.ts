@@ -1,4 +1,5 @@
-export function isJuniorDriver(dateOfBirth: string): boolean {
+export function isJuniorPerson(dateOfBirth: string | null | undefined): boolean {
+  if (!dateOfBirth) return false;
   const dob = new Date(`${dateOfBirth}T12:00:00`);
   const today = new Date();
   let age = today.getFullYear() - dob.getFullYear();
@@ -8,3 +9,6 @@ export function isJuniorDriver(dateOfBirth: string): boolean {
   }
   return age < 18;
 }
+
+/** @deprecated Use isJuniorPerson */
+export const isJuniorDriver = isJuniorPerson;

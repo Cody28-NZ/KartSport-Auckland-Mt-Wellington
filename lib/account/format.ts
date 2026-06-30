@@ -1,6 +1,4 @@
-import type { MembershipStatus, PaymentStatus, Profile, RegistrationStatus } from "@/types/database";
-import type { Driver } from "@/types/database";
-import type { MembershipApplication } from "@/types/database";
+import type { MembershipApplication, MembershipStatus, PaymentStatus, Person, Profile, RegistrationStatus } from "@/types/database";
 
 export function formatMembershipStatus(status: MembershipStatus | null | undefined): string {
   switch (status) {
@@ -78,9 +76,12 @@ export function isProfileComplete(profile: Profile | null): boolean {
   return Boolean(profile.first_name && profile.last_name && profile.phone);
 }
 
-export function hasDrivers(drivers: Driver[]): boolean {
-  return drivers.length > 0;
+export function hasPeople(people: Person[]): boolean {
+  return people.length > 0;
 }
+
+/** @deprecated Use hasPeople */
+export const hasDrivers = hasPeople;
 
 export function hasSubmittedMembership(applications: MembershipApplication[]): boolean {
   return applications.some((app) => app.status === "submitted");

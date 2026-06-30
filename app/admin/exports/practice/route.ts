@@ -28,7 +28,7 @@ export async function GET() {
       status,
       submitted_at,
       practice_sessions ( title, starts_at ),
-      drivers ( first_name, last_name, date_of_birth, email, phone ),
+      people ( first_name, last_name, date_of_birth, email, phone ),
       profiles ( email, phone )
     `,
     )
@@ -42,17 +42,17 @@ export async function GET() {
     const session = Array.isArray(row.practice_sessions)
       ? row.practice_sessions[0]
       : row.practice_sessions;
-    const driver = Array.isArray(row.drivers) ? row.drivers[0] : row.drivers;
+    const person = Array.isArray(row.people) ? row.people[0] : row.people;
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
 
     return {
       session_title: session?.title ?? "",
       session_starts_at: session?.starts_at ?? "",
-      driver_first_name: driver?.first_name ?? "",
-      driver_last_name: driver?.last_name ?? "",
-      driver_dob: driver?.date_of_birth ?? "",
-      driver_email: driver?.email ?? profile?.email ?? "",
-      driver_phone: driver?.phone ?? profile?.phone ?? "",
+      driver_first_name: person?.first_name ?? "",
+      driver_last_name: person?.last_name ?? "",
+      driver_dob: person?.date_of_birth ?? "",
+      driver_email: person?.email ?? profile?.email ?? "",
+      driver_phone: person?.phone ?? profile?.phone ?? "",
       kart_number: row.kart_number ?? "",
       licence_number: row.licence_number ?? "",
       amount_due: row.amount_due ?? "",

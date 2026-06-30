@@ -24,6 +24,7 @@ export function ProfileForm({ profile, email }: ProfileFormProps) {
     <form action={formAction} className="space-y-6">
       <div className={accountSectionClass}>
         <h2 className="text-base font-semibold text-ink">Account details</h2>
+        <p className="mt-1 text-sm text-ink-muted">These are the login/account holder details for this account.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="first_name" className={accountLabelClass}>

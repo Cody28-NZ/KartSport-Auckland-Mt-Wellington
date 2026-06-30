@@ -5,12 +5,12 @@ import { SupabaseSetupNotice } from "@/components/auth/SupabaseSetupNotice";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CtaButton } from "@/components/ui/CtaButton";
 import {
-  hasDrivers,
+  hasPeople,
   hasSubmittedMembership,
   isProfileComplete,
 } from "@/lib/account/format";
 import { getMembershipApplicationsForCurrentUser } from "@/lib/data/membership";
-import { getDriversForCurrentUser } from "@/lib/data/drivers";
+import { getPeopleForCurrentUser } from "@/lib/data/people";
 import { getCurrentUserProfile, requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createPageMetadata } from "@/lib/metadata";
@@ -59,29 +59,27 @@ export default async function OnboardingPage() {
   const { redirectTo } = await requireUser();
   if (redirectTo) redirect(redirectTo);
 
-  const [profile, drivers, applications] = await Promise.all([
+  const [profile, people, applications] = await Promise.all([
     getCurrentUserProfile(),
-    getDriversForCurrentUser(),
+    getPeopleForCurrentUser(),
     getMembershipApplicationsForCurrentUser(),
   ]);
 
   const profileComplete = isProfileComplete(profile);
-  const driversComplete = hasDrivers(drivers);
+  const peopleComplete = hasPeople(people);
   const membershipComplete = hasSubmittedMembership(applications);
-  const allComplete = profileComplete && driversComplete && membershipComplete;
+  const allComplete = profileComplete && peopleComplete && membershipComplete;
 
   return (
     <AccountShell
       currentPath="/account/onboarding"
       title="Welcome"
-      description="Complete these steps to get ready for practice and racing at Sir Colin Giltrap Raceway."
+      description="Register as a member or visiting driver, add people to your account, and submit your application."
     >
       {allComplete ? (
         <div className={cn(cardBase, "p-6 text-center")}>
           <StatusBadge status="success" label="Setup complete" />
-          <p className="mt-4 text-sm text-ink-muted">
-            Your account is set up. You can manage drivers and membership from your dashboard.
-          </p>
+          <p className="mt-4 text-sm text-ink-muted">Your account is ready. Manage people and membership from your dashboard.</p>
           <div className="mt-5">
             <CtaButton label="Go to dashboard" href="/account" variant="primary" />
           </div>
@@ -90,24 +88,24 @@ export default async function OnboardingPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <SetupCard
             step={1}
-            title="Complete account profile"
-            description="Add your name, phone and address so the club can contact you."
+            title="Account holder profile"
+            description="Add login owner contact details."
             complete={profileComplete}
             href="/account/profile"
             cta="Edit profile"
           />
           <SetupCard
             step={2}
-            title="Add driver"
-            description="Add yourself or a junior driver you manage as guardian."
-            complete={driversComplete}
-            href="/account/drivers"
-            cta={driversComplete ? "Manage drivers" : "Add driver"}
+            title="People & drivers"
+            description="Add juniors, adult drivers, social/pit members or visiting drivers."
+            complete={peopleComplete}
+            href="/account/people"
+            cta={peopleComplete ? "Manage people" : "Add person"}
           />
           <SetupCard
             step={3}
-            title="Submit membership application"
-            description="Choose membership products and accept the club terms."
+            title="Membership application"
+            description="Choose membership or visitor type and submit."
             complete={membershipComplete}
             href={membershipComplete ? "/account/membership" : "/account/membership/new"}
             cta={membershipComplete ? "View membership" : "Start application"}

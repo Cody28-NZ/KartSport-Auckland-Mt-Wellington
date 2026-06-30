@@ -6,13 +6,19 @@ import { useRouter } from "next/navigation";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { cn, btnPrimary, focusRing, tapTarget } from "@/lib/cn";
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  nextPath?: string;
+}
+
+export function RegisterForm({ nextPath }: RegisterFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const destination = nextPath && nextPath.startsWith("/") ? nextPath : "/account/membership/new";
 
   useEffect(() => {
     const supabase = createClientIfConfigured();
@@ -45,7 +51,7 @@ export function RegisterForm() {
     }
 
     if (data.session) {
-      router.push("/account/onboarding");
+      router.push(destination);
       router.refresh();
       return;
     }

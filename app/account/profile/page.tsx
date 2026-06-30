@@ -30,7 +30,7 @@ export default async function ProfilePage() {
     <AccountShell
       currentPath="/account/profile"
       title="Profile"
-      description="Your contact details as the account holder."
+      description="These are the login/account holder details for this account."
     >
       <ProfileForm profile={profile} email={user?.email ?? ""} />
     </AccountShell>

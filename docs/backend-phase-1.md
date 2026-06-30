@@ -1,6 +1,68 @@
 # Backend Phase 1 — Supabase foundation
 
-This phase adds Supabase authentication, database schema, seed data, RLS policies and backend-ready models. It does **not** include payments, full admin UI, or public practice/race registration flows yet.
+This phase adds Supabase authentication, database schema, seed data, RLS policies and account/membership models. It does **not** include payments, full admin UI, or public practice/race registration flows yet.
+
+## Important: schema reset required
+
+The account model was refactored from a driver-first model to a **people / person** model. The old `drivers`, `guardians`, and `driver_karts` tables were removed from `001_initial_platform_schema.sql`.
+
+If you previously applied the old schema to Supabase, **reset the database** and rerun migrations:
+
+1. Supabase Dashboard → Project Settings → Database → Reset database (or drop and recreate the project for local dev)
+2. Run migrations in order:
+   - `supabase/migrations/001_initial_platform_schema.sql`
+   - `supabase/migrations/002_seed_options_and_products.sql`
+
+There is no production member data to preserve at this stage.
+
+## Data model overview
+
+### Account holder (`profiles`)
+
+- One row per Supabase auth user (login owner)
+- Parents/guardians typically own the login for junior drivers
+- `/account/profile` edits these details only
+
+### People (`people`)
+
+- Any person attached to an account: adult driver, junior driver, parent/guardian, social member, pit member, visiting driver
+- `is_driver` indicates whether they drive on track
+- `is_account_holder` can mirror the login owner as a person record
+- `person_type` enum describes the role
+
+### Relationships (`person_relationships`)
+
+- Links people together (e.g. parent/guardian → junior driver)
+- Used so guardian details prefill for future practice/race entry
+- `relationship_type`: parent, guardian, caregiver, account_holder_for, family_member
+
+### Driver profiles (`driver_profiles`)
+
+- Only for people who drive (`is_driver = true`)
+- Kart class, numbers, transponder, default club
+
+### Licences (`driver_licences`)
+
+- References `person_id` (not a separate drivers table)
+- **Day licence** is a licence rating option, not a membership product
+
+### Memberships (`memberships`)
+
+- Current membership records per person (admin-populated after approval/payment later)
+- Created from applications via `created_from_application_id`
+
+### Membership applications (`membership_applications`)
+
+- Applies to a **person** via `applicant_person_id`
+- `membership_intent` enum: racing member, family member, social, pit, life/honorary, visiting driver, parent/guardian only
+- `primary_driver_person_id` when the applicant drives
+- Social and pit are **non-driving**
+- Visiting driver is **not** full AKL-MTW membership
+
+### Practice / race (prepared, UI not built)
+
+- `practice_registrations` and `race_entries` reference `person_id` and optional `driver_profile_id`
+- Support visiting drivers and club members
 
 ## Supabase setup
 
@@ -13,105 +75,66 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-4. Run migrations manually in the Supabase SQL editor (in order):
-   - `supabase/migrations/001_initial_platform_schema.sql`
-   - `supabase/migrations/002_seed_options_and_products.sql`
-
-Alternatively, link the Supabase CLI and run `supabase db push` when the CLI is configured.
-
-5. In Supabase Auth settings, configure site URL and redirect URLs for local development (`http://localhost:3000`).
-
+4. Run migrations (see reset note above).
+5. Configure Auth site URL and redirect URLs (`http://localhost:3000`).
 6. Promote an admin user after first registration:
 
 ```sql
 update public.profiles set is_admin = true where email = 'you@example.com';
 ```
 
-Or insert into `admin_roles`:
+## Tables
 
-```sql
-insert into public.admin_roles (user_id, role, active)
-select id, 'admin', true from public.profiles where email = 'you@example.com';
-```
-
-## Environment variables
-
-| Variable | Where used | Notes |
-|----------|------------|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Browser + server | Public |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser + server | Public |
-
-Never expose the service role key in the browser.
-
-## Tables created
-
-- `profiles` — one row per auth user
-- `drivers`, `guardians`, `driver_licences`, `driver_karts`
+- `profiles` — auth account holder
+- `people`, `person_relationships`, `driver_profiles`, `driver_licences`
+- `memberships`, `membership_products`, `membership_applications`, `membership_application_items`
 - `option_sets`, `option_values`
-- `membership_products`, `membership_applications`, `membership_application_items`
-- `practice_sessions`, `practice_products`, `practice_registrations`, `practice_registration_items`
-- `race_events`, `race_entry_products`, `race_entries`, `race_entry_items`
+- `practice_sessions`, `practice_registrations`, `practice_products`, `practice_registration_items`
+- `race_events`, `race_entries`, `race_entry_products`, `race_entry_items`
 - `terms_versions`, `accepted_terms`
 - `admin_roles`
 
-## Seed data
-
-Migration `002_seed_options_and_products.sql` seeds:
-
-- Kart classes, KSNZ licence types/ratings, clubs, volunteer roles (TODO: confirm volunteer values)
-- Membership, practice and race entry products
-- Placeholder active terms for membership, practice and race entry
-
 ## RLS summary
 
-- Users manage their own profile, drivers, guardians, licences and karts
+- Users manage people, relationships, driver profiles and licences where `owner_user_id = auth.uid()`
 - Users insert/select their own membership applications, practice registrations and race entries
-- Active option values, products, sessions, events and terms are publicly readable
-- Admin write access uses `public.is_admin()` (profile flag or active `admin_roles` row)
-- `admin_roles` is admin-only
+- Active options, products, sessions, events and terms are publicly readable
+- Admin access via `public.is_admin()`
+- Membership records (`memberships`) are read-only for users; admin manages status
 
-## App routes added
+## App routes
 
 | Route | Purpose |
 |-------|---------|
-| `/login` | Email/password sign in |
-| `/register` | Create account |
-| `/account` | Protected account summary |
-| `/account/drivers` | Manage drivers |
-| `/admin/exports/practice` | Admin CSV export (protected) |
-| `/admin/exports/race-entries` | Admin CSV export (protected) |
-
-If Supabase env vars are missing, auth pages show a developer setup notice and the public site continues to work.
-
-## CSV exports
-
-Admin-only route handlers return CSV downloads:
-
-- `/admin/exports/practice`
-- `/admin/exports/race-entries`
-
-Requires an authenticated admin user.
+| `/become-a-member` | Public membership/visitor landing |
+| `/login` | Member login |
+| `/register` | Create account → membership application |
+| `/account` | Dashboard |
+| `/account/profile` | Account holder details |
+| `/account/people` | People & drivers management |
+| `/account/drivers` | Redirects to `/account/people` |
+| `/account/membership` | Application list/status |
+| `/account/membership/new` | Membership application wizard |
+| `/account/onboarding` | Setup guide |
 
 ## Code locations
 
-- Supabase clients: `lib/supabase/`
-- Auth helpers: `lib/supabase/auth.ts`
-- Data helpers: `lib/data/`
-- CSV helpers: `lib/export/csv.ts`
-- TypeScript interfaces: `types/database.ts` (replace with generated types later)
+- Supabase: `lib/supabase/`
+- People data: `lib/data/people.ts`
+- Membership intents: `lib/account/membership-intents.ts`
+- Person utils: `lib/people/utils.ts`
+- Types: `types/database.ts`
 
 ## Future phases
 
-1. Practice registration UI wired to `practice_sessions` and `practice_registrations`
-2. Race entry UI wired to `race_events` and `race_entries`
-3. Membership application UI
-4. Admin dashboard (events, sessions, exports, payment status)
-5. Form builder / dynamic fields (if needed)
-6. External payment handoff integration (Stripe, Windcave, Xero, Sporty, etc.)
+1. Practice registration UI (prefill from people/guardians)
+2. Race entry UI
+3. Admin dashboard and membership approval
+4. External payment handoff
 
-## Manual checks after setup
+## Manual checks after reset
 
-- Register a test user and confirm a `profiles` row is created
-- Add a driver under `/account/drivers`
-- For a junior DOB, confirm guardian fields are required
-- Confirm admin CSV routes return 403 for non-admin users
+- Register → redirected to `/account/membership/new`
+- Complete wizard for junior member → guardian relationship created
+- Add social/pit person under `/account/people` without driver fields
+- Confirm `/account/drivers` redirects to `/account/people`

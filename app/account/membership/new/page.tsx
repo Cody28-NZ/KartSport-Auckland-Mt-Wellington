@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/account/AccountShell";
-import { MembershipApplicationForm } from "@/components/account/MembershipApplicationForm";
+import { MembershipWizard } from "@/components/account/MembershipWizard";
 import { SupabaseSetupNotice } from "@/components/auth/SupabaseSetupNotice";
 import { currentSeasonLabel } from "@/lib/account/format";
-import { getDriverWithDetails, getDriversForCurrentUser } from "@/lib/data/drivers";
+import { getPeopleForCurrentUser } from "@/lib/data/people";
 import { getActiveMembershipTerms, getMembershipProducts } from "@/lib/data/membership";
 import { getOptionValues } from "@/lib/data/options";
 import { getCurrentUserProfile, requireUser } from "@/lib/supabase/auth";
@@ -28,38 +28,33 @@ export default async function NewMembershipPage() {
   const { redirectTo } = await requireUser();
   if (redirectTo) redirect(`/login?next=/account/membership/new`);
 
-  const [profile, driversList, products, terms, classOptions, volunteerRoles] = await Promise.all([
-    getCurrentUserProfile(),
-    getDriversForCurrentUser(),
-    getMembershipProducts(),
-    getActiveMembershipTerms(),
-    getOptionValues("kart_classes"),
-    getOptionValues("volunteer_roles"),
-  ]);
-
-  const drivers = await Promise.all(
-    driversList.map(async (driver) => {
-      const details = await getDriverWithDetails(driver.id);
-      return {
-        driver,
-        guardian: details?.guardians.find((g) => g.is_primary) ?? details?.guardians[0] ?? null,
-      };
-    }),
-  );
+  const [profile, people, products, terms, classOptions, licenceTypeOptions, licenceRatingOptions, clubOptions] =
+    await Promise.all([
+      getCurrentUserProfile(),
+      getPeopleForCurrentUser(),
+      getMembershipProducts(),
+      getActiveMembershipTerms(),
+      getOptionValues("kart_classes"),
+      getOptionValues("ksnz_licence_types"),
+      getOptionValues("ksnz_licence_ratings"),
+      getOptionValues("clubs"),
+    ]);
 
   return (
     <AccountShell
       currentPath="/account/membership"
       title="Membership application"
-      description={`Season ${currentSeasonLabel()}. Select products and submit your application — payment is handled separately by the club.`}
+      description="Register as a member or visiting driver. Payment is handled separately by the club."
     >
-      <MembershipApplicationForm
-        drivers={drivers}
+      <MembershipWizard
+        profile={profile}
+        people={people}
         products={products}
         terms={terms}
         classOptions={classOptions}
-        volunteerRoles={volunteerRoles}
-        profile={profile}
+        licenceTypeOptions={licenceTypeOptions}
+        licenceRatingOptions={licenceRatingOptions}
+        clubOptions={clubOptions}
         seasonLabel={currentSeasonLabel()}
       />
     </AccountShell>

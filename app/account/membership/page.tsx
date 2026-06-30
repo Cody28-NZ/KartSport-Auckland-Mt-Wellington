@@ -11,6 +11,7 @@ import {
   formatPaymentStatus,
   formatRegistrationStatus,
 } from "@/lib/account/format";
+import { formatMembershipIntent } from "@/lib/account/membership-intents";
 import { getMembershipApplicationsForCurrentUser } from "@/lib/data/membership";
 import { getCurrentUserProfile, requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -51,7 +52,7 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
     >
       {params.submitted ? (
         <div className={cn(cardBase, "mb-6 border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900")}>
-          Membership application submitted. Payment instructions will be confirmed by the club.
+          Application submitted. Payment is handled separately by the club.
         </div>
       ) : null}
 
@@ -73,9 +74,9 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
               <li key={application.id} className={cn(cardBase, "p-5")}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-ink">Season {application.season_label}</p>
+                    <p className="font-semibold text-ink">{formatMembershipIntent(application.membership_intent)}</p>
                     <p className="mt-1 text-sm text-ink-muted">
-                      Submitted {new Date(application.submitted_at).toLocaleDateString("en-NZ")}
+                      Season {application.season_label} · Submitted {new Date(application.submitted_at).toLocaleDateString("en-NZ")}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -88,9 +89,9 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
                     <dt className="text-ink-muted">Amount due</dt>
                     <dd className="font-medium text-ink">{formatCurrency(Number(application.amount_due))}</dd>
                   </div>
-                  {application.is_junior ? (
+                  {application.primary_driver_person_id ? (
                     <div className="flex justify-between gap-4 sm:block">
-                      <dt className="text-ink-muted">Junior application</dt>
+                      <dt className="text-ink-muted">Driver linked</dt>
                       <dd className="font-medium text-ink">Yes</dd>
                     </div>
                   ) : null}

@@ -5,7 +5,7 @@ import { cn, focusRing, sectionDefault } from "@/lib/cn";
 const links = [
   { href: "/account", label: "Dashboard", exact: true },
   { href: "/account/profile", label: "Profile" },
-  { href: "/account/drivers", label: "Drivers" },
+  { href: "/account/people", label: "People & Drivers" },
   { href: "/account/membership", label: "Membership" },
 ];
 

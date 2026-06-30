@@ -47,6 +47,35 @@ create type public.terms_context as enum (
   'race_entry'
 );
 
+create type public.person_type as enum (
+  'account_holder',
+  'adult_driver',
+  'junior_driver',
+  'parent_guardian',
+  'social_member',
+  'pit_member',
+  'visiting_driver',
+  'other'
+);
+
+create type public.relationship_type as enum (
+  'parent',
+  'guardian',
+  'caregiver',
+  'account_holder_for',
+  'family_member'
+);
+
+create type public.membership_intent as enum (
+  'racing_practising_member',
+  'additional_family_racing_member',
+  'social_member',
+  'pit_member',
+  'life_honorary_member',
+  'visiting_driver',
+  'parent_guardian_only'
+);
+
 -- ---------------------------------------------------------------------------
 -- Shared triggers
 -- ---------------------------------------------------------------------------
@@ -129,68 +158,64 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ---------------------------------------------------------------------------
--- Drivers and related
+-- People, relationships and driver profiles
 -- ---------------------------------------------------------------------------
 
-create table public.drivers (
+create table public.people (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references public.profiles(id) on delete cascade,
   first_name text not null,
   last_name text not null,
-  date_of_birth date not null,
+  date_of_birth date,
   email text,
   phone text,
   street_address text,
   suburb text,
   town_city text,
   postcode text,
-  is_primary_driver boolean not null default false,
+  occupation text,
+  person_type public.person_type not null default 'other',
+  is_driver boolean not null default false,
+  is_account_holder boolean not null default false,
   is_active boolean not null default true,
-  default_class_id uuid references public.option_values(id),
-  default_kart_number text,
-  default_race_number text,
-  default_transponder_number text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-create table public.guardians (
+create table public.person_relationships (
   id uuid primary key default gen_random_uuid(),
-  driver_id uuid not null references public.drivers(id) on delete cascade,
-  guardian_number integer not null default 1,
-  first_name text not null,
-  last_name text not null,
-  email text,
-  phone text,
-  street_address text,
-  occupation text,
-  relationship text,
+  owner_user_id uuid not null references public.profiles(id) on delete cascade,
+  from_person_id uuid not null references public.people(id) on delete cascade,
+  to_person_id uuid not null references public.people(id) on delete cascade,
+  relationship_type public.relationship_type not null,
   is_primary boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (from_person_id <> to_person_id)
+);
+
+create table public.driver_profiles (
+  id uuid primary key default gen_random_uuid(),
+  person_id uuid not null unique references public.people(id) on delete cascade,
+  default_class_id uuid references public.option_values(id),
+  default_kart_number text,
+  default_race_number text,
+  default_transponder_number text,
+  default_club_id uuid references public.option_values(id),
+  active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create table public.driver_licences (
   id uuid primary key default gen_random_uuid(),
-  driver_id uuid not null references public.drivers(id) on delete cascade,
+  person_id uuid not null references public.people(id) on delete cascade,
   licence_type_id uuid references public.option_values(id),
   licence_rating_id uuid references public.option_values(id),
   licence_number text,
   issuing_club_id uuid references public.option_values(id),
   licence_confirmed_green boolean not null default false,
   expires_on date,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table public.driver_karts (
-  id uuid primary key default gen_random_uuid(),
-  driver_id uuid not null references public.drivers(id) on delete cascade,
-  kart_number text,
-  transponder_number text,
-  class_id uuid references public.option_values(id),
-  notes text,
-  is_default boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -213,9 +238,10 @@ create table public.membership_products (
 create table public.membership_applications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
-  driver_id uuid references public.drivers(id),
+  applicant_person_id uuid references public.people(id),
+  primary_driver_person_id uuid references public.people(id),
+  membership_intent public.membership_intent not null,
   season_label text not null,
-  is_junior boolean not null default false,
   primary_family_member_first_name text,
   primary_family_member_last_name text,
   primary_class_id uuid references public.option_values(id),
@@ -241,6 +267,19 @@ create table public.membership_application_items (
   quantity integer not null default 1,
   line_total numeric(10, 2) not null default 0,
   created_at timestamptz not null default now()
+);
+
+create table public.memberships (
+  id uuid primary key default gen_random_uuid(),
+  person_id uuid not null references public.people(id) on delete cascade,
+  membership_product_id uuid references public.membership_products(id),
+  season_label text not null,
+  status public.membership_status not null default 'pending',
+  starts_on date,
+  ends_on date,
+  created_from_application_id uuid references public.membership_applications(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 -- ---------------------------------------------------------------------------
@@ -275,7 +314,8 @@ create table public.practice_registrations (
   id uuid primary key default gen_random_uuid(),
   practice_session_id uuid not null references public.practice_sessions(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
-  driver_id uuid not null references public.drivers(id) on delete cascade,
+  person_id uuid not null references public.people(id) on delete cascade,
+  driver_profile_id uuid references public.driver_profiles(id) on delete set null,
   class_id uuid references public.option_values(id),
   kart_number text,
   licence_type_id uuid references public.option_values(id),
@@ -337,7 +377,8 @@ create table public.race_entries (
   id uuid primary key default gen_random_uuid(),
   race_event_id uuid not null references public.race_events(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
-  driver_id uuid not null references public.drivers(id) on delete cascade,
+  person_id uuid not null references public.people(id) on delete cascade,
+  driver_profile_id uuid references public.driver_profiles(id) on delete set null,
   class_id uuid references public.option_values(id),
   race_number text,
   ksnz_licence_number text,
@@ -385,7 +426,7 @@ create table public.terms_versions (
 create table public.accepted_terms (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
-  driver_id uuid references public.drivers(id) on delete cascade,
+  person_id uuid references public.people(id) on delete cascade,
   terms_version_id uuid not null references public.terms_versions(id),
   related_table text,
   related_id uuid,
@@ -432,13 +473,15 @@ create trigger set_option_sets_updated_at before update on public.option_sets
   for each row execute function public.set_updated_at();
 create trigger set_option_values_updated_at before update on public.option_values
   for each row execute function public.set_updated_at();
-create trigger set_drivers_updated_at before update on public.drivers
+create trigger set_people_updated_at before update on public.people
   for each row execute function public.set_updated_at();
-create trigger set_guardians_updated_at before update on public.guardians
+create trigger set_person_relationships_updated_at before update on public.person_relationships
+  for each row execute function public.set_updated_at();
+create trigger set_driver_profiles_updated_at before update on public.driver_profiles
   for each row execute function public.set_updated_at();
 create trigger set_driver_licences_updated_at before update on public.driver_licences
   for each row execute function public.set_updated_at();
-create trigger set_driver_karts_updated_at before update on public.driver_karts
+create trigger set_memberships_updated_at before update on public.memberships
   for each row execute function public.set_updated_at();
 create trigger set_membership_products_updated_at before update on public.membership_products
   for each row execute function public.set_updated_at();
@@ -462,10 +505,11 @@ create trigger set_race_entries_updated_at before update on public.race_entries
 -- ---------------------------------------------------------------------------
 
 alter table public.profiles enable row level security;
-alter table public.drivers enable row level security;
-alter table public.guardians enable row level security;
+alter table public.people enable row level security;
+alter table public.person_relationships enable row level security;
+alter table public.driver_profiles enable row level security;
 alter table public.driver_licences enable row level security;
-alter table public.driver_karts enable row level security;
+alter table public.memberships enable row level security;
 alter table public.option_sets enable row level security;
 alter table public.option_values enable row level security;
 alter table public.membership_products enable row level security;
@@ -489,30 +533,34 @@ create policy "profiles_update_own" on public.profiles for update using (auth.ui
 create policy "profiles_select_admin" on public.profiles for select using (public.is_admin());
 create policy "profiles_update_admin" on public.profiles for update using (public.is_admin());
 
--- drivers
-create policy "drivers_all_own" on public.drivers for all
+-- people
+create policy "people_all_own" on public.people for all
   using (owner_user_id = auth.uid())
   with check (owner_user_id = auth.uid());
-create policy "drivers_select_admin" on public.drivers for select using (public.is_admin());
-create policy "drivers_update_admin" on public.drivers for update using (public.is_admin());
+create policy "people_admin" on public.people for all using (public.is_admin()) with check (public.is_admin());
 
--- guardians
-create policy "guardians_all_own" on public.guardians for all
-  using (exists (select 1 from public.drivers d where d.id = driver_id and d.owner_user_id = auth.uid()))
-  with check (exists (select 1 from public.drivers d where d.id = driver_id and d.owner_user_id = auth.uid()));
-create policy "guardians_admin" on public.guardians for all using (public.is_admin()) with check (public.is_admin());
+-- person_relationships
+create policy "person_relationships_all_own" on public.person_relationships for all
+  using (owner_user_id = auth.uid())
+  with check (owner_user_id = auth.uid());
+create policy "person_relationships_admin" on public.person_relationships for all using (public.is_admin()) with check (public.is_admin());
+
+-- driver_profiles
+create policy "driver_profiles_all_own" on public.driver_profiles for all
+  using (exists (select 1 from public.people p where p.id = person_id and p.owner_user_id = auth.uid()))
+  with check (exists (select 1 from public.people p where p.id = person_id and p.owner_user_id = auth.uid()));
+create policy "driver_profiles_admin" on public.driver_profiles for all using (public.is_admin()) with check (public.is_admin());
 
 -- driver_licences
 create policy "driver_licences_all_own" on public.driver_licences for all
-  using (exists (select 1 from public.drivers d where d.id = driver_id and d.owner_user_id = auth.uid()))
-  with check (exists (select 1 from public.drivers d where d.id = driver_id and d.owner_user_id = auth.uid()));
+  using (exists (select 1 from public.people p where p.id = person_id and p.owner_user_id = auth.uid()))
+  with check (exists (select 1 from public.people p where p.id = person_id and p.owner_user_id = auth.uid()));
 create policy "driver_licences_admin" on public.driver_licences for all using (public.is_admin()) with check (public.is_admin());
 
--- driver_karts
-create policy "driver_karts_all_own" on public.driver_karts for all
-  using (exists (select 1 from public.drivers d where d.id = driver_id and d.owner_user_id = auth.uid()))
-  with check (exists (select 1 from public.drivers d where d.id = driver_id and d.owner_user_id = auth.uid()));
-create policy "driver_karts_admin" on public.driver_karts for all using (public.is_admin()) with check (public.is_admin());
+-- memberships
+create policy "memberships_select_own" on public.memberships for select
+  using (exists (select 1 from public.people p where p.id = person_id and p.owner_user_id = auth.uid()));
+create policy "memberships_admin" on public.memberships for all using (public.is_admin()) with check (public.is_admin());
 
 -- option_sets / option_values
 create policy "option_sets_select_active" on public.option_sets for select using (true);
@@ -582,10 +630,17 @@ create policy "accepted_terms_admin" on public.accepted_terms for select using (
 create policy "admin_roles_admin" on public.admin_roles for all using (public.is_admin()) with check (public.is_admin());
 
 -- Indexes for common lookups
-create index drivers_owner_user_id_idx on public.drivers (owner_user_id);
-create index guardians_driver_id_idx on public.guardians (driver_id);
+create index people_owner_user_id_idx on public.people (owner_user_id);
+create index person_relationships_owner_user_id_idx on public.person_relationships (owner_user_id);
+create index person_relationships_from_person_id_idx on public.person_relationships (from_person_id);
+create index person_relationships_to_person_id_idx on public.person_relationships (to_person_id);
+create index driver_profiles_person_id_idx on public.driver_profiles (person_id);
+create index driver_licences_person_id_idx on public.driver_licences (person_id);
+create index memberships_person_id_idx on public.memberships (person_id);
 create index practice_registrations_session_id_idx on public.practice_registrations (practice_session_id);
 create index practice_registrations_user_id_idx on public.practice_registrations (user_id);
+create index practice_registrations_person_id_idx on public.practice_registrations (person_id);
 create index race_entries_event_id_idx on public.race_entries (race_event_id);
 create index race_entries_user_id_idx on public.race_entries (user_id);
+create index race_entries_person_id_idx on public.race_entries (person_id);
 create index option_values_set_id_idx on public.option_values (option_set_id);

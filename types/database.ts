@@ -29,6 +29,32 @@ export type TrackAvailabilityStatus =
 
 export type TermsContext = "membership" | "practice" | "race_entry";
 
+export type PersonType =
+  | "account_holder"
+  | "adult_driver"
+  | "junior_driver"
+  | "parent_guardian"
+  | "social_member"
+  | "pit_member"
+  | "visiting_driver"
+  | "other";
+
+export type RelationshipType =
+  | "parent"
+  | "guardian"
+  | "caregiver"
+  | "account_holder_for"
+  | "family_member";
+
+export type MembershipIntent =
+  | "racing_practising_member"
+  | "additional_family_racing_member"
+  | "social_member"
+  | "pit_member"
+  | "life_honorary_member"
+  | "visiting_driver"
+  | "parent_guardian_only";
+
 export interface Profile {
   id: string;
   email: string | null;
@@ -46,40 +72,60 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface Driver {
+export interface Person {
   id: string;
   owner_user_id: string;
   first_name: string;
   last_name: string;
-  date_of_birth: string;
+  date_of_birth: string | null;
   email: string | null;
   phone: string | null;
   street_address: string | null;
   suburb: string | null;
   town_city: string | null;
   postcode: string | null;
-  is_primary_driver: boolean;
+  occupation: string | null;
+  person_type: PersonType;
+  is_driver: boolean;
+  is_account_holder: boolean;
   is_active: boolean;
-  default_class_id: string | null;
-  default_kart_number: string | null;
-  default_race_number: string | null;
-  default_transponder_number: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface Guardian {
+export interface PersonRelationship {
   id: string;
-  driver_id: string;
-  guardian_number: number;
-  first_name: string;
-  last_name: string;
-  email: string | null;
-  phone: string | null;
-  street_address: string | null;
-  occupation: string | null;
-  relationship: string | null;
+  owner_user_id: string;
+  from_person_id: string;
+  to_person_id: string;
+  relationship_type: RelationshipType;
   is_primary: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverProfile {
+  id: string;
+  person_id: string;
+  default_class_id: string | null;
+  default_kart_number: string | null;
+  default_race_number: string | null;
+  default_transponder_number: string | null;
+  default_club_id: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverLicence {
+  id: string;
+  person_id: string;
+  licence_type_id: string | null;
+  licence_rating_id: string | null;
+  licence_number: string | null;
+  issuing_club_id: string | null;
+  licence_confirmed_green: boolean;
+  expires_on: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -114,7 +160,8 @@ export interface PracticeRegistration {
   id: string;
   practice_session_id: string;
   user_id: string;
-  driver_id: string;
+  person_id: string;
+  driver_profile_id: string | null;
   class_id: string | null;
   kart_number: string | null;
   licence_type_id: string | null;
@@ -150,7 +197,8 @@ export interface RaceEntry {
   id: string;
   race_event_id: string;
   user_id: string;
-  driver_id: string;
+  person_id: string;
+  driver_profile_id: string | null;
   class_id: string | null;
   race_number: string | null;
   ksnz_licence_number: string | null;
@@ -169,31 +217,6 @@ export interface RaceEntry {
   updated_at: string;
 }
 
-export interface DriverLicence {
-  id: string;
-  driver_id: string;
-  licence_type_id: string | null;
-  licence_rating_id: string | null;
-  licence_number: string | null;
-  issuing_club_id: string | null;
-  licence_confirmed_green: boolean;
-  expires_on: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DriverKart {
-  id: string;
-  driver_id: string;
-  kart_number: string | null;
-  transponder_number: string | null;
-  class_id: string | null;
-  notes: string | null;
-  is_default: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface MembershipProduct {
   id: string;
   name: string;
@@ -205,12 +228,26 @@ export interface MembershipProduct {
   updated_at: string;
 }
 
+export interface Membership {
+  id: string;
+  person_id: string;
+  membership_product_id: string | null;
+  season_label: string;
+  status: MembershipStatus;
+  starts_on: string | null;
+  ends_on: string | null;
+  created_from_application_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MembershipApplication {
   id: string;
   user_id: string;
-  driver_id: string | null;
+  applicant_person_id: string | null;
+  primary_driver_person_id: string | null;
+  membership_intent: MembershipIntent;
   season_label: string;
-  is_junior: boolean;
   primary_family_member_first_name: string | null;
   primary_family_member_last_name: string | null;
   primary_class_id: string | null;

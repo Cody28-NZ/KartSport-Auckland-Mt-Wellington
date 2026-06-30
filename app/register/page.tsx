@@ -13,11 +13,17 @@ export const metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default async function RegisterPage() {
+interface RegisterPageProps {
+  searchParams: Promise<{ next?: string }>;
+}
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   if (isSupabaseConfigured()) {
     const user = await getCurrentUser();
     if (user) redirect("/account");
   }
+
+  const params = await searchParams;
 
   return (
     <section className={cn(sectionDefault, sectionHome)}>
@@ -29,7 +35,7 @@ export default async function RegisterPage() {
         <div className="mt-6">
           {isSupabaseConfigured() ? (
             <div className={cn(cardBase, "p-6")}>
-              <RegisterForm />
+              <RegisterForm nextPath={params.next} />
             </div>
           ) : (
             <SupabaseSetupNotice />
